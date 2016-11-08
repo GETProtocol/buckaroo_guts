@@ -1,8 +1,10 @@
 import django_fsm
 import logging
+import urllib.parse
 
 from django.utils import timezone
 from django.conf import settings
+from django.http import HttpResponse
 
 from rest_framework import generics
 from rest_framework.response import Response
@@ -13,8 +15,9 @@ from .models import Transaction
 from .serializers import TransactionSerializer
 from .actions import Pay
 from .exceptions import BuckarooException, BuckarooAPIException
+from .utils import verify_buckaroo_signature, update_transaction_post
 
-from utils.permissions import PostOnly, BuckarooServer
+from .permissions import PostOnly, BuckarooServer
 
 
 logger = logging.getLogger(__name__)
@@ -109,3 +112,48 @@ class PushView(APIView):
             update_transaction(transaction=transaction, data=t_data)
 
         return Response("ok")
+
+
+def PaymentReturnRedirectView(request, pk, *args, **kwargs):
+    """
+        Buckaroo does a POST request to our server with payment information. Ember cannot
+        handle the POST request while keeping that data. Therefore we let Buckaroo do the
+        POST to a Django view which then redirects and reformats the data so Ember can
+        parse it.
+    """
+    logger = logging.getLogger('buckaroo.redirect')
+
+    logger.info("Redirecting user after payment from Django return url to Ember")
+
+    response = HttpResponse("", status=302)
+
+    data = request.POST
+
+    if verify_buckaroo_signature(data):
+        transaction = update_transaction_post(data)
+    else:
+        logger.warning(
+            "Received POST request with invalid signature. Data: {0}".format(data))
+        return HttpResponse("Invalid signature", status=500)
+
+    # Add flag to indicate whether there was success,
+    # failure or cancelation. The frontend can/will take different actions
+    # based on that flag
+    flag = "failed"
+
+    if transaction.status == Transaction.STATUS_SUCCESS:
+        flag = "success"
+    elif transaction.status == Transaction.STATUS_CANCELLED:
+        flag = "cancelled"
+
+    data = dict(data)  # we can't add keys to a QueryDict
+    data['flag'] = flag
+
+    # let the frontend also know for which event it was
+    data['event'] = transaction.order.tickets.first().event_id
+
+    response['Location'] = ("{0}/orders/"
+                            "paymentReturn/{1}/{2}").format(settings.EMBER_URL,
+                                                            pk,
+                                                            urllib.parse.urlencode(data))
+    return response
