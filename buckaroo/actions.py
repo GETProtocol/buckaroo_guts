@@ -30,6 +30,19 @@ BUCKAROO_BASE_PRODUCTION_URL = 'https://checkout.buckaroo.nl/'
 BUCKAROO_CHECKOUT_URL = "json/Transaction/"
 BUCKAROO_REFUND_URL = 'json/Transaction/RefundInfo/'
 
+BANK_CODES = (
+    ('ABNANL2A', 'ABN AMRO'),
+    ('ASNBNL21', 'ASN Bank'),
+    ('INGBNL2A', 'ING'),
+    ('RABONL2U', 'Rabobank'),
+    ('SNSBNL2A', 'SNS Bank'),
+    ('RBRBNL21', 'RegioBank'),
+    ('TRIONL2U', 'Triodos Bank'),
+    ('FVLBNL22', 'Van Lanschot'),
+    ('KNABNL2H', 'Knab bank'),
+    ('BUNQNL2A', 'Bunq')
+)
+
 
 class BuckarooSettingsMixin:
 

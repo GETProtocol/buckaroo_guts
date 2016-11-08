@@ -14,8 +14,6 @@ from django_fsm import TransitionNotAllowed
 from .models import Transaction
 from .exceptions import BuckarooException
 from .auth import AuthHeader
-from .actions import (BUCKAROO_BASE_TEST_URL, BUCKAROO_BASE_PRODUCTION_URL,
-                      BUCKAROO_CHECKOUT_URL)
 
 logger = logging.getLogger(__name__)
 
@@ -148,11 +146,12 @@ def add_creditcard_json(body, transaction, action):
 
 
 def add_ideal_json(body, transaction, action):
+    from .actions import BANK_CODES
 
     result = body.copy()
 
     bank_code = transaction.bank_code
-    bank_codes = [x[0] for x in settings.BANK_CODES]
+    bank_codes = [x[0] for x in BANK_CODES]
 
     if not bank_code or bank_code not in bank_codes:
         raise BuckarooException({"message": "Missing or erroneous field",
@@ -264,6 +263,8 @@ def verify_transaction_fields(transaction):
 
 
 def construct_url():
+    from .actions import (BUCKAROO_BASE_TEST_URL, BUCKAROO_BASE_PRODUCTION_URL,
+                          BUCKAROO_CHECKOUT_URL)
     if settings.BUCKAROO_TEST_MODE:
         return ''.join([BUCKAROO_BASE_TEST_URL,
                         BUCKAROO_CHECKOUT_URL])

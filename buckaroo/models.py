@@ -2,11 +2,14 @@ import uuid
 import logging
 
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from django_fsm import FSMField, transition
 
 from order.models import Order
 from utils.models import TimeStampedModel
+
+from resturo.models import ModelResolver
 
 from actstream import action
 
@@ -38,6 +41,29 @@ BUCKAROO_STATUSES = (
     (BUCKAROO_891_CANCELLED_BY_MERCHANT, 'Cancelled By Merchant')
 )
 
+modelresolver = ModelResolver()
+
+
+class BasicOrderModel(TimeStampedModel):
+
+    client = models.ForeignKey('Client')
+    total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
+                                validators=[MinValueValidator(0)])
+
+    class Meta:
+        abstract = True
+
+
+class Client(TimeStampedModel):
+    name = models.CharField(max_length=300)
+    website_key = models.CharField(max_length=300)
+    secret = models.CharField(max_length=300)
+    refund_fee = models.DecimalField(max_digits=5, decimal_places=2)
+    test_mode = models.BooleanField(default=True)
+    return_url = models.CharField(max_length=500)
+    refunds_enabled = models.BooleanField(default=False)
+    ember_url = models.CharField(max_length=500)
+
 
 class Transaction(TimeStampedModel):
     """A transaction is a payment attempt for an Order."""
@@ -58,7 +84,7 @@ class Transaction(TimeStampedModel):
     payment_key = models.CharField(max_length=300, blank=True, null=True)
     transaction_key = models.CharField(max_length=300, blank=True, null=True)
     refunded = models.BooleanField(default=False)
-    order = models.ForeignKey(Order)
+    order = models.ForeignKey(modelresolver.Order)
     status = FSMField(default=STATUS_NEW, protected=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     redirect_url = models.CharField(max_length=500, blank=True, null=True)
