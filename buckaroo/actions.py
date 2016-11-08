@@ -24,6 +24,13 @@ BUCKAROO_PENDING_STATUSES = [BUCKAROO_790_PENDING_INPUT,
                              BUCKAROO_792_AWAITING_CONSUMER]
 
 
+BUCKAROO_BASE_TEST_URL = 'https://testcheckout.buckaroo.nl/'
+BUCKAROO_BASE_PRODUCTION_URL = 'https://checkout.buckaroo.nl/'
+
+BUCKAROO_CHECKOUT_URL = "json/Transaction/"
+BUCKAROO_REFUND_URL = 'json/Transaction/RefundInfo/'
+
+
 class BuckarooSettingsMixin:
 
     def __init__(self):
@@ -119,11 +126,11 @@ class Refund(BuckarooSettingsMixin):
             self.refund_amount = self.amount
 
         if self.testing:
-            self.refund_info_url = ''.join([settings.BUCKAROO_BASE_TEST_URL,
-                                            settings.BUCKAROO_REFUND_URL])
+            self.refund_info_url = ''.join([BUCKAROO_BASE_TEST_URL,
+                                            BUCKAROO_REFUND_URL])
         else:
-            self.refund_info_url = ''.join([settings.BUCKAROO_BASE_PRODUCTION_URL,
-                                            settings.BUCKAROO_REFUND_URL])
+            self.refund_info_url = ''.join([BUCKAROO_BASE_PRODUCTION_URL,
+                                            BUCKAROO_REFUND_URL])
 
         self.is_refundable = False
         self.max_refund_amount = -1

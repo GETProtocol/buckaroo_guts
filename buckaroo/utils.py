@@ -14,6 +14,8 @@ from django_fsm import TransitionNotAllowed
 from .models import Transaction
 from .exceptions import BuckarooException
 from .auth import AuthHeader
+from .actions import (BUCKAROO_BASE_TEST_URL, BUCKAROO_BASE_PRODUCTION_URL,
+                      BUCKAROO_CHECKOUT_URL)
 
 logger = logging.getLogger(__name__)
 
@@ -263,11 +265,11 @@ def verify_transaction_fields(transaction):
 
 def construct_url():
     if settings.BUCKAROO_TEST_MODE:
-        return ''.join([settings.BUCKAROO_BASE_TEST_URL,
-                        settings.BUCKAROO_CHECKOUT_URL])
+        return ''.join([BUCKAROO_BASE_TEST_URL,
+                        BUCKAROO_CHECKOUT_URL])
     else:
-        return''.join([settings.BUCKAROO_BASE_PRODUCTION_URL,
-                       settings.BUCKAROO_CHECKOUT_URL])
+        return''.join([BUCKAROO_BASE_PRODUCTION_URL,
+                       BUCKAROO_CHECKOUT_URL])
 
 
 def split_url(url):
