@@ -153,7 +153,7 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
     data['event'] = transaction.order.tickets.first().event_id
 
     response['Location'] = ("{0}/orders/"
-                            "paymentReturn/{1}/{2}").format(settings.EMBER_URL,
+                            "paymentReturn/{1}/{2}").format(transaction.order.client.ember_url,
                                                             pk,
                                                             urllib.parse.urlencode(data))
     return response

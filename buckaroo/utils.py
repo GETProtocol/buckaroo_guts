@@ -182,10 +182,10 @@ def add_refund_json(body, transaction, amount):
     return result
 
 
-def add_pay_json(body, transaction):
+def add_pay_json(body, transaction, client):
     result = body.copy()
 
-    return_url = ''.join([settings.BUCKAROO_RETURN_URL,
+    return_url = ''.join([client.return_url,
                           reverse('guts_payment_return',
                                   kwargs={'pk': transaction.order.id})])
 
@@ -262,10 +262,10 @@ def verify_transaction_fields(transaction):
                                  "field": "order.total"})
 
 
-def construct_url():
+def construct_url(client=None):
     from .actions import (BUCKAROO_BASE_TEST_URL, BUCKAROO_BASE_PRODUCTION_URL,
                           BUCKAROO_CHECKOUT_URL)
-    if settings.BUCKAROO_TEST_MODE:
+    if client.test_mode:
         return ''.join([BUCKAROO_BASE_TEST_URL,
                         BUCKAROO_CHECKOUT_URL])
     else:

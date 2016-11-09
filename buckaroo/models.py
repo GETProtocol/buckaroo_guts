@@ -6,7 +6,6 @@ from django.core.validators import MinValueValidator
 
 from django_fsm import FSMField, transition
 
-from order.models import Order
 from utils.models import TimeStampedModel
 
 from resturo.models import ModelResolver
@@ -44,9 +43,9 @@ BUCKAROO_STATUSES = (
 modelresolver = ModelResolver()
 
 
-class BasicOrderModel(TimeStampedModel):
+class BasicOrderModel(models.Model):
 
-    client = models.ForeignKey('Client')
+    client = models.ForeignKey('Client', blank=True, null=True)
     total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
                                 validators=[MinValueValidator(0)])
 

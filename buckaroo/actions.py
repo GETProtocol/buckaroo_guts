@@ -47,20 +47,21 @@ BANK_CODES = (
 class BuckarooSettingsMixin:
 
     def __init__(self):
-        try:
-            assert settings.BUCKAROO_CHECKOUT_URL
-        except AttributeError:
-            raise BuckarooException("BUCKAROO_CHECKOUT_URL settings missing")
+        pass
+        # try:
+        #     assert settings.BUCKAROO_CHECKOUT_URL
+        # except AttributeError:
+        #     raise BuckarooException("BUCKAROO_CHECKOUT_URL settings missing")
 
-        try:
-            assert settings.BUCKAROO_WEBSITE_KEY
-        except AttributeError:
-            raise BuckarooException("BUCKAROO_WEBSITE_KEY setting missing")
+        # try:
+        #     assert settings.BUCKAROO_WEBSITE_KEY
+        # except AttributeError:
+        #     raise BuckarooException("BUCKAROO_WEBSITE_KEY setting missing")
 
-        try:
-            assert settings.BUCKAROO_SECRET_KEY
-        except AttributeError:
-            raise BuckarooException("BUCKAROO_SECRET_KEY setting missing")
+        # try:
+        #     assert settings.BUCKAROO_SECRET_KEY
+        # except AttributeError:
+        #     raise BuckarooException("BUCKAROO_SECRET_KEY setting missing")
 
 
 class Pay(BuckarooSettingsMixin):
@@ -71,6 +72,7 @@ class Pay(BuckarooSettingsMixin):
 
         self.transaction = transaction
         self.testing = testing
+        self.client = transaction.order.client
 
     def pay(self):
 
@@ -78,7 +80,7 @@ class Pay(BuckarooSettingsMixin):
 
         data = self._prepare_pay_json()
 
-        url = construct_url()
+        url = construct_url(client=self.client)
 
         res = buckaroo_api_call(self.transaction, url, "POST", data)
 
@@ -86,7 +88,7 @@ class Pay(BuckarooSettingsMixin):
 
     def _prepare_pay_json(self):
         base = get_base_transaction_json(self.transaction)
-        body = add_pay_json(base, self.transaction)
+        body = add_pay_json(base, self.transaction, self.client)
 
         if self.transaction.payment_method == 'ideal':
             return add_ideal_json(body, self.transaction, 'pay')
@@ -211,7 +213,7 @@ class Refund(BuckarooSettingsMixin):
 
         data = self._prepare_refund_json()
 
-        url = construct_url()
+        url = construct_url(client=self.client)
 
         res = buckaroo_api_call(self.transaction, url, "POST", data)
 

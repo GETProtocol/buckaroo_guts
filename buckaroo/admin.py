@@ -1,7 +1,7 @@
 from django.contrib import admin
 from utils.admin import ActStreamInlineAdmin
 
-from .models import Transaction
+from .models import Transaction, Client
 
 
 class TransactionAdmin(admin.ModelAdmin):
@@ -10,3 +10,9 @@ class TransactionAdmin(admin.ModelAdmin):
     ]
 
 admin.site.register(Transaction, TransactionAdmin)
+
+
+class ClientAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Client, ClientAdmin)
