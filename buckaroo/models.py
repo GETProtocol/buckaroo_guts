@@ -3,14 +3,15 @@ import logging
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.apps import apps
+from django.conf import settings
+
 
 from django_fsm import FSMField, transition
 
-from utils.models import TimeStampedModel
-
-from resturo.models import ModelResolver
-
 from actstream import action
+
+from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,55 @@ BUCKAROO_STATUSES = (
     (BUCKAROO_890_CANCELLED_BY_USER, 'Cancelled By User'),
     (BUCKAROO_891_CANCELLED_BY_MERCHANT, 'Cancelled By Merchant')
 )
+
+
+class TimeStampedModel(models.Model):
+
+    class Meta:
+        abstract = True
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+
+class ModelResolver(object):
+
+    def __call__(self, name):
+        model_path = getattr(self, name)
+
+        try:
+            app_label, model_class_name = model_path.split('.')
+        except ValueError:
+            raise ImproperlyConfigured(
+                "{0} must be of the form 'app_label.model_name'".format(name))
+
+        model = apps.get_model(app_label, model_class_name)
+        if model is None:
+            raise ImproperlyConfigured(
+                "{0} refers to model '{1}' that has not been "
+                "installed".format(name, model_path))
+
+        return model
+
+    def __getattr__(self, name):
+        # resolveclass
+        if name == 'User':
+            model = settings.AUTH_USER_MODEL
+        else:
+            try:
+                model_path = settings.MODELS[name]
+            except (KeyError, AttributeError):
+                raise ImproperlyConfigured(
+                    "no MODELS have been configured, {0} can't be resolved"
+                    .format(name))
+
+            model = model_path
+
+        return model
+
+
+modelresolver = ModelResolver()
+
 
 modelresolver = ModelResolver()
 

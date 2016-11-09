@@ -1,13 +1,12 @@
 from django.contrib import admin
-from utils.admin import ActStreamInlineAdmin
-
 from .models import Transaction, Client
 
 
 class TransactionAdmin(admin.ModelAdmin):
-    inlines = [
-        ActStreamInlineAdmin
-    ]
+    # inlines = [
+    #     ActStreamInlineAdmin
+    # ]
+    pass
 
 admin.site.register(Transaction, TransactionAdmin)
 
