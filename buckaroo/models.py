@@ -90,19 +90,6 @@ class ModelResolver(object):
 modelresolver = ModelResolver()
 
 
-modelresolver = ModelResolver()
-
-
-class BasicOrderModel(models.Model):
-
-    client = models.ForeignKey('Client', blank=True, null=True)
-    total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
-                                validators=[MinValueValidator(0)])
-
-    class Meta:
-        abstract = True
-
-
 class Client(TimeStampedModel):
     name = models.CharField(max_length=300)
     website_key = models.CharField(max_length=300)
@@ -112,6 +99,16 @@ class Client(TimeStampedModel):
     return_url = models.CharField(max_length=500)
     refunds_enabled = models.BooleanField(default=False)
     ember_url = models.CharField(max_length=500)
+
+
+class BasicOrderModel(models.Model):
+
+    client = models.ForeignKey(Client, blank=True, null=True)
+    total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
+                                validators=[MinValueValidator(0)])
+
+    class Meta:
+        abstract = True
 
 
 class Transaction(TimeStampedModel):
