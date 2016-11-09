@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from buckaroo.views import update_transaction
-from order.tests.factories import OrderFactory
+from .factories import OrderFactory
 from ..models import (BUCKAROO_190_SUCCESS, BUCKAROO_890_CANCELLED_BY_USER,
                       BUCKAROO_490_FAILED,
                       BUCKAROO_790_PENDING_INPUT, BUCKAROO_690_REJECTED,

@@ -2,9 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from order.tests.factories import OrderFactory
-from utils.tests.factories import UserFactory
-from .factories import TransactionFactory
+from .factories import TransactionFactory, OrderFactory, UserFactory
 
 
 class TransactionAPIStatusTestCase(APITestCase):
@@ -94,7 +92,7 @@ class TransactionPushAPITestCase(APITestCase):
     def setUp(self):
         self.user = UserFactory.create()
         self.client.force_login(self.user)
-        self.transaction = TransactionFactory.create()
+        #self.transaction = TransactionFactory.create()
 
     def test_get_not_allowed(self):
         response = self.client.get(reverse('buckaroo_push'),
