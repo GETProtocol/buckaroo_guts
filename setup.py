@@ -7,6 +7,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+
 install_requires = [
     'Django>=1.7.0',
     'djangorestframework>=3.1.0',
@@ -19,6 +20,9 @@ install_requires = [
 
 test_requires = install_requires + [
     'pytest',
+    'pytest-django',
+    'ipdb',
+    'pytest',
     'mock',
     'factory_boy',
     'mock-django'
@@ -29,9 +33,10 @@ setup(
     version='0.1',
     packages=find_packages(),
     include_package_data=True,
+    setup_requires=['pytest-runner'],
     install_requires=install_requires,
     tests_require=test_requires,
-    test_suite='runtests.runtests',
+    test_suite='buckaroo.tests',
     license='BSD License',  # example license
     description='A Django application for the Buckaroo API',
     long_description=README,

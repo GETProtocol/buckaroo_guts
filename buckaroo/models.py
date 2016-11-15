@@ -5,7 +5,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.apps import apps
 from django.conf import settings
-
+from django.contrib.auth.models import User
 
 from django_fsm import FSMField, transition
 
@@ -102,7 +102,6 @@ class Client(TimeStampedModel):
 
 
 class BasicOrderModel(models.Model):
-
     client = models.ForeignKey(Client, blank=True, null=True)
     total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
                                 validators=[MinValueValidator(0)])

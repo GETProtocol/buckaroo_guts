@@ -1,6 +1,6 @@
 import pytest
 
-from .factories import TransactionFactory
+from .factories import TransactionFactory, ClientFactory, OrderFactory, UserFactory
 
 
 @pytest.fixture
@@ -12,6 +12,11 @@ def transaction(request):
 def transaction_pending(request):
     return TransactionFactory.create(status='pending',
                                      order__state='pending')
+
+
+@pytest.fixture
+def gutsclient(request):
+    return ClientFactory.create(name='guts', secret='ihaveguts')
 
 
 @pytest.fixture
@@ -31,40 +36,23 @@ def cc_transaction(request, transaction):
 
 
 @pytest.fixture
-def buckaroo_settings(request, settings):
-    settings.BUCKAROO_WEBSITE_KEY = '12345'
-    settings.BUCKAROO_SECRET_KEY = '54321'
-    settings.BUCKAROO_CHECKOUT_URL = 'notrelevant'
-    return settings
+def order(request):
+    return OrderFactory.create()
 
 
 @pytest.fixture
-def no_website_settings(request, settings):
-    del settings.BUCKAROO_WEBSITE_KEY
-    settings.BUCKAROO_SECRET_KEY = '54321'
-    settings.BUCKAROO_CHECKOUT_URL = 'notrelevant'
-    return settings
+def pending_order(request, order):
+    order.start_pay()
+    order.save()
+    return order
 
 
 @pytest.fixture
-def no_secret_settings(request, settings):
-    del settings.BUCKAROO_SECRET_KEY
-    settings.BUCKAROO_WEBSITE_KEY = '12345'
-    settings.BUCKAROO_CHECKOUT_URL = 'notrelevant'
-    return settings
+def completed_order(request, pending_order, user, filled_cart):
+    pending_order.completed()
+    return pending_order
 
 
 @pytest.fixture
-def no_checkout_settings(request, settings):
-    del settings.BUCKAROO_CHECKOUT_URL
-    settings.BUCKAROO_WEBSITE_KEY = '12345'
-    settings.BUCKAROO_SECRET_KEY = '54321'
-    return settings
-
-
-@pytest.fixture
-def no_buckaroo_settings(request, settings):
-    del settings.BUCKAROO_WEBSITE_KEY
-    del settings.BUCKAROO_SECRET_KEY
-    del settings.BUCKAROO_CHECKOUT_URL
-    return settings
+def user(request):
+    return UserFactory.create()

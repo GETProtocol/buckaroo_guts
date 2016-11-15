@@ -76,10 +76,12 @@ def update_transaction_post(data=None):
     return transaction
 
 
-def verify_buckaroo_signature(data):
+def verify_buckaroo_signature(data, client):
     buckaroo_signature = data.get('BRQ_SIGNATURE', None)
+    print("SECRET: ", client.secret)
+    print(data)
     try:
-        secret_key = settings.BUCKAROO_SECRET_KEY
+        secret_key = client.secret
     except AttributeError:
         raise BuckarooException("No Buckaroo secret key in settings")
 
@@ -89,7 +91,8 @@ def verify_buckaroo_signature(data):
                                     not k.startswith("BRQ_SIGNATURE")]) + secret_key
     raw_signature = urllib.parse.unquote(urlencoded_signature)
     signature = hashlib.sha1(raw_signature.encode('utf-8')).hexdigest()
-
+    print(buckaroo_signature)
+    print(signature)
     if buckaroo_signature == signature:
         return True
     return False
@@ -149,7 +152,6 @@ def add_ideal_json(body, transaction, action):
     from .actions import BANK_CODES
 
     result = body.copy()
-
     bank_code = transaction.bank_code
     bank_codes = [x[0] for x in BANK_CODES]
 
@@ -185,9 +187,12 @@ def add_refund_json(body, transaction, amount):
 def add_pay_json(body, transaction, client):
     result = body.copy()
 
-    return_url = ''.join([client.return_url,
-                          reverse('guts_payment_return',
-                                  kwargs={'pk': transaction.order.id})])
+    return_url = "/get/from/client"
+
+    if client and client.return_url:
+        return_url = ''.join([client.return_url,
+                              reverse('guts_payment_return',
+                                      kwargs={'pk': transaction.order.id})])
 
     result.update(payment_method=transaction.payment_method,
                   bank_code=transaction.bank_code,
@@ -198,10 +203,12 @@ def add_pay_json(body, transaction, client):
     return result
 
 
-def get_base_transaction_json(transaction):
+def get_base_transaction_json(transaction, client):
     body = OrderedDict(Invoice=str(transaction.uuid),
                        Currency="EUR",
-                       Services=OrderedDict(ServiceList=[]))
+                       Services=OrderedDict(ServiceList=[]),
+                       ADD_clientid=client.id,
+                       cust_client_id=client.id)
     return body
 
 

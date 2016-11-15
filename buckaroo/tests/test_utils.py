@@ -150,7 +150,8 @@ def full_data():
             'BRQ_STATUSMESSAGE': 'Transaction successfully processed',
             'BRQ_INVOICENUMBER': '4e6703b4-193b-41dc-b2b5-7c4c6336c741',
             # Changed signature for test value of secret key
-            'BRQ_SIGNATURE': '78dd56cb548c807eada3e232d5ad5c45e5157c96',
+            'BRQ_SIGNATURE': 'f5d28e00651fa5862691292563b5e719aedebc71',
+            #'BRQ_SIGNATURE': '78dd56cb548c807eada3e232d5ad5c45e5157c96',
             'BRQ_SERVICE_IDEAL_CONSUMERISSUER': 'ABNAMRO Bank ',
             'BRQ_SERVICE_IDEAL_CONSUMERIBAN': 'NL44RABO0123456789'}
 
@@ -158,22 +159,20 @@ def full_data():
 @pytest.mark.django_db(transaction=False)
 class TestSignatureUtils:
 
-    def test_valid_signature(self, buckaroo_settings, full_data):
-        assert verify_buckaroo_signature(full_data)
-
-    def test_invalid_no_settings_key(self, no_secret_settings, full_data):
-        with pytest.raises(BuckarooException) as err:
-            verify_buckaroo_signature(full_data)
-        assert err.value.args[0] == "No Buckaroo secret key in settings"
+    def test_valid_signature(self, full_data, gutsclient):
+        assert verify_buckaroo_signature(full_data, gutsclient)
+    # def test_invalid_no_settings_key(self, full_data, gutsclient):
+    #     with pytest.raises(BuckarooException) as err:
+    #         verify_buckaroo_signature(full_data, gutsclient)
+    #     assert err.value.args[0] == "No Buckaroo secret key in settings"
 
     @pytest.mark.parametrize('field', sorted(full_data().keys()))
-    def test_invalid_signature_removed_field(self, buckaroo_settings, full_data, field):
+    def test_invalid_signature_removed_field(self, full_data, field, gutsclient):
         del full_data[field]
-        assert not verify_buckaroo_signature(full_data)
+        assert not verify_buckaroo_signature(full_data, gutsclient)
 
     def test_valid_signature_added_filtered_and_empty_fields(self,
-                                                             buckaroo_settings,
-                                                             full_data):
+                                                             full_data, gutsclient):
         full_data['BLA_Bla'] = '12345'
         full_data['BLA_Bla2'] = None
-        assert verify_buckaroo_signature(full_data)
+        assert verify_buckaroo_signature(full_data, gutsclient)

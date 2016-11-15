@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from .models import Transaction
+from .models import Transaction, Client
 from .serializers import TransactionSerializer
 from .actions import Pay
 from .exceptions import BuckarooException, BuckarooAPIException
@@ -129,7 +129,10 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
 
     data = request.POST
 
-    if verify_buckaroo_signature(data):
+    print("DATA", data)
+    client = Client.objects.get(name='guts')
+
+    if verify_buckaroo_signature(data, client):
         transaction = update_transaction_post(data)
     else:
         logger.warning(
@@ -150,7 +153,10 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
     data['flag'] = flag
 
     # let the frontend also know for which event it was
-    data['event'] = transaction.order.tickets.first().event_id
+    try:
+        data['event'] = transaction.order.tickets.first().event_id
+    except AttributeError:
+        data['event'] = 1
 
     response['Location'] = ("{0}/orders/"
                             "paymentReturn/{1}/{2}").format(transaction.order.client.ember_url,

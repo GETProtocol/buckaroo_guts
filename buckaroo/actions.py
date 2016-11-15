@@ -79,15 +79,16 @@ class Pay(BuckarooSettingsMixin):
         verify_transaction_fields(transaction=self.transaction)
 
         data = self._prepare_pay_json()
+        print(data)
 
         url = construct_url(client=self.client)
 
         res = buckaroo_api_call(self.transaction, url, "POST", data)
-
+        import ipdb;ipdb.set_trace()
         self._handle_transaction_response(response=res)
 
     def _prepare_pay_json(self):
-        base = get_base_transaction_json(self.transaction)
+        base = get_base_transaction_json(self.transaction, self.client)
         body = add_pay_json(base, self.transaction, self.client)
 
         if self.transaction.payment_method == 'ideal':
@@ -132,7 +133,8 @@ class Refund(BuckarooSettingsMixin):
 
         self.transaction = transaction
         self.testing = testing
-        self.fee = Decimal(settings.BUCKAROO_REFUND_FEE)
+        self.client = transaction.order.client
+        self.fee = self.client.refund_fee
         self.amount = amount
         self.refund_amount = self.amount - self.fee
 
@@ -192,7 +194,7 @@ class Refund(BuckarooSettingsMixin):
 
     def _prepare_refund_json(self):
 
-        base = get_base_transaction_json(self.transaction)
+        base = get_base_transaction_json(self.transaction, self.client)
         body = add_refund_json(base, self.transaction, self.refund_amount)
 
         if self.transaction.payment_method == 'ideal':

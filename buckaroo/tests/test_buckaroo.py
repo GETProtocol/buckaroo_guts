@@ -5,6 +5,7 @@ import pytest
 class TestStates:
 
     def test_initialstate(self, transaction):
+        print("HELP!")
         assert transaction.status == transaction.STATUS_NEW
 
     def test_in_pending_state(self, transaction):

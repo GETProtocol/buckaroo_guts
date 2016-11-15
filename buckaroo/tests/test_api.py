@@ -2,6 +2,7 @@ from django.core.urlresolvers import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
+
 from .factories import TransactionFactory, OrderFactory, UserFactory
 
 
@@ -32,7 +33,7 @@ class TransactionAPITestCase(APITestCase):
         self.order = OrderFactory.create(total=100, owner=self.user, state='pending')
 
         self.ideal_data = dict(bank_code='ABNANL2A',
-                               card=False,
+                               card=None,
                                order=1,
                                payment_method='ideal',
                                redirect_url=None,
@@ -69,7 +70,6 @@ class TransactionAPITestCase(APITestCase):
         response = self.client.post(reverse('buckaroo_transaction_list'),
                                     self.ideal_data,
                                     format='json')
-
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['detail'] == 'User is not owner of the order'
 
@@ -92,7 +92,7 @@ class TransactionPushAPITestCase(APITestCase):
     def setUp(self):
         self.user = UserFactory.create()
         self.client.force_login(self.user)
-        #self.transaction = TransactionFactory.create()
+        self.transaction = TransactionFactory.create()
 
     def test_get_not_allowed(self):
         response = self.client.get(reverse('buckaroo_push'),
