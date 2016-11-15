@@ -100,6 +100,9 @@ class Client(TimeStampedModel):
     refunds_enabled = models.BooleanField(default=False)
     ember_url = models.CharField(max_length=500)
 
+    def __str__(self):
+        return self.name
+
 
 class BasicOrderModel(models.Model):
     client = models.ForeignKey(Client, blank=True, null=True)
