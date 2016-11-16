@@ -32,10 +32,14 @@ class TransactionList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         instance = serializer.save(status='new')
+        #import ipdb;ipdb.set_trace()
+        # if instance.order.owner != self.request.user:
+        #     raise PermissionDenied(detail="User is not owner of the order")
 
-        if instance.order.owner != self.request.user:
-            raise PermissionDenied(detail="User is not owner of the order")
 
+        instance.order.start_pay()
+        instance.order.save()
+        # import ipdb;ipdb.set_trace()
         if instance.order.state != 'pending':
             raise ValidationError(detail="Incorrect order status: {0}"
                                   .format(instance.order.state))
@@ -130,7 +134,10 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
     data = request.POST
 
     print("DATA", data)
-    client = Client.objects.get(name='guts')
+    try:
+        client = Client.objects.get(name='guts')
+    except:
+        client = Client.objects.get(name='kasco')
 
     if verify_buckaroo_signature(data, client):
         transaction = update_transaction_post(data)

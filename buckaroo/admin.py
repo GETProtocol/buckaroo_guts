@@ -6,7 +6,7 @@ class TransactionAdmin(admin.ModelAdmin):
     # inlines = [
     #     ActStreamInlineAdmin
     # ]
-    pass
+    exclude = ('status',)
 
 admin.site.register(Transaction, TransactionAdmin)
 

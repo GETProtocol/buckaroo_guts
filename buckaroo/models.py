@@ -5,7 +5,6 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import User
 
 from django_fsm import FSMField, transition
 
@@ -104,15 +103,6 @@ class Client(TimeStampedModel):
         return self.name
 
 
-class BasicOrderModel(models.Model):
-    client = models.ForeignKey(Client, blank=True, null=True)
-    total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
-                                validators=[MinValueValidator(0)])
-
-    class Meta:
-        abstract = True
-
-
 class Transaction(TimeStampedModel):
     """A transaction is a payment attempt for an Order."""
 
@@ -132,7 +122,6 @@ class Transaction(TimeStampedModel):
     payment_key = models.CharField(max_length=300, blank=True, null=True)
     transaction_key = models.CharField(max_length=300, blank=True, null=True)
     refunded = models.BooleanField(default=False)
-    order = models.ForeignKey(modelresolver.Order)
     status = FSMField(default=STATUS_NEW, protected=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     redirect_url = models.CharField(max_length=500, blank=True, null=True)
@@ -199,3 +188,13 @@ class Transaction(TimeStampedModel):
 
     def __str__(self):
         return "Transaction {0} with status {1}".format(self.id, self.status)
+
+
+class BasicOrderModel(models.Model):
+    client = models.ForeignKey(Client, blank=True, null=True)
+    total = models.DecimalField(default=0, max_digits=11, decimal_places=2,
+                                validators=[MinValueValidator(0)])
+    transaction = models.OneToOneField(Transaction, related_name='order', blank=True, null=True)
+
+    class Meta:
+        abstract = True

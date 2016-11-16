@@ -57,13 +57,13 @@ class AuthHeader:
             request_json_base64string = base64.b64encode(digest)
             request_json_base64string = request_json_base64string.decode('utf-8')
 
-        msg = settings.BUCKAROO_WEBSITE_KEY + http_method + \
+        msg = self.transaction.order.client.website_key + http_method + \
             request_uri.lower() + \
             str(request_timestamp) + nonce + request_json_base64string
 
         message = bytes(msg, "utf-8")
 
-        secret = bytes(settings.BUCKAROO_SECRET_KEY, "utf-8")
+        secret = bytes(self.transaction.order.client.secret, "utf-8")
 
         signature = base64.b64encode(hmac.new(secret,
                                               message,
@@ -83,7 +83,7 @@ class AuthHeader:
 
         signature = self._get_signature(self.method, nonce, timestamp, url, self.json)
 
-        header = "hmac " + settings.BUCKAROO_WEBSITE_KEY + ":" + \
+        header = "hmac " + self.transaction.order.client.website_key + ":" + \
             signature.decode('utf-8') + ":" + \
             str(nonce) + ":" + str(timestamp)
 
