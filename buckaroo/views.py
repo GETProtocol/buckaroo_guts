@@ -32,9 +32,9 @@ class TransactionList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         instance = serializer.save(status='new')
-        #import ipdb;ipdb.set_trace()
-        if instance.order.owner != self.request.user:
-            raise PermissionDenied(detail="User is not owner of the order")
+
+        # if instance.order.owner != self.request.user:
+        #     raise PermissionDenied(detail="User is not owner of the order")
 
         # import ipdb;ipdb.set_trace()
         if instance.order.state != 'pending':
