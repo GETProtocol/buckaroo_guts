@@ -15,9 +15,10 @@ class TransactionSerializer(serializers.ModelSerializer):
                   'redirect_url', 'card', 'bank_code')
 
     def create(self, validated_data):
-
         order = validated_data.pop('order')
         transaction = Transaction.objects.create(**validated_data)
-        transaction.order = order
-        transaction.save()
+        order.transaction = transaction
+        order.save()
+        t = Transaction.objects.get(id=transaction.id)
+        assert t.order == order
         return transaction
