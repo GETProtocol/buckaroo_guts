@@ -70,6 +70,8 @@ class TransactionAPITestCase(APITestCase):
         response = self.client.post(reverse('buckaroo_transaction_list'),
                                     self.ideal_data,
                                     format='json')
+        print(response.status_code)
+        print(response.content)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['detail'] == 'User is not owner of the order'
 

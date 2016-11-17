@@ -49,7 +49,10 @@ class TestUpdateTransaction:
 
     def test_update_no_code(self):
         o = OrderFactory.create(state='pending')
-        t = TransactionFactory.create(order=o)
+        t = TransactionFactory.create()
+        t.order = o
+        t.save()
+
         data = {1: 1}
 
         assert t.last_push is None
@@ -61,7 +64,9 @@ class TestUpdateTransaction:
 
     def test_status_update_success(self):
         o = OrderFactory.create(state='pending')
-        t = TransactionFactory.create(status='pending', order=o)
+        t = TransactionFactory.create(status='pending')
+        t.order = o
+        t.save()
 
         data = dict(Status=dict(Code=dict(Code=BUCKAROO_190_SUCCESS)))
 
@@ -72,7 +77,9 @@ class TestUpdateTransaction:
 
     def test_status_update_cancelled(self):
         o = OrderFactory.create(state='pending')
-        t = TransactionFactory.create(status='pending', order=o)
+        t = TransactionFactory.create(status='pending')
+        t.order = o
+        t.save()
 
         data = dict(Status=dict(
             Code=dict(Code=BUCKAROO_890_CANCELLED_BY_USER)))
@@ -83,7 +90,9 @@ class TestUpdateTransaction:
 
     def test_status_update_failed(self):
         o = OrderFactory.create(state='pending')
-        t = TransactionFactory.create(status='pending', order=o)
+        t = TransactionFactory.create(status='pending')
+        t.order = o
+        t.save()
 
         data = dict(Status=dict(Code=dict(Code=BUCKAROO_490_FAILED)))
 
@@ -93,7 +102,9 @@ class TestUpdateTransaction:
 
     def test_status_update_rejected(self):
         o = OrderFactory.create(state='pending')
-        t = TransactionFactory.create(status='pending', order=o)
+        t = TransactionFactory.create(status='pending')
+        t.order = o
+        t.save()
 
         data = dict(Status=dict(Code=dict(Code=BUCKAROO_690_REJECTED)))
 
@@ -110,11 +121,14 @@ def simple_data(request):
 @pytest.mark.django_db(transaction=False)
 class TestTransactionUpdate:
 
-    def test_update_transaction_success(self, simple_data):
+    def test_update_transaction_success(self, simple_data, pending_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_190_SUCCESS
-        t = TransactionFactory.create(status='pending',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='pending')
+        o = OrderFactory.create(state='pending',
+                                transaction__status='pending',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = pending_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -123,11 +137,14 @@ class TestTransactionUpdate:
         assert t.status == 'success'
         assert t.order.state == 'completed'
 
-    def test_update_transaction_already_success(self, simple_data):
+    def test_update_transaction_already_success(self, simple_data, completed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_190_SUCCESS
-        t = TransactionFactory.create(status='success',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='completed')
+        o = OrderFactory.create(state='completed',
+                                transaction__status='success',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = completed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -136,11 +153,13 @@ class TestTransactionUpdate:
         assert t.status == 'success'
         assert t.order.state == 'completed'
 
-    def test_update_new_transaction_to_success(self, simple_data):
+    def test_update_new_transaction_to_success(self, simple_data, order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_190_SUCCESS
-        t = TransactionFactory.create(status='new',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='created')
+        o = OrderFactory.create(transaction__status='new',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -149,11 +168,14 @@ class TestTransactionUpdate:
         assert t.status == 'new'
         assert t.order.state == 'created'
 
-    def test_update_transaction_cancelled(self, simple_data):
+    def test_update_transaction_cancelled(self, simple_data, pending_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_890_CANCELLED_BY_USER
-        t = TransactionFactory.create(status='pending',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='pending')
+        o = OrderFactory.create(state='pending',
+                                transaction__status='pending',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = pending_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -162,11 +184,14 @@ class TestTransactionUpdate:
         assert t.status == 'cancelled'
         assert t.order.state == 'cancelled'
 
-    def test_update_transaction_already_cancelled(self, simple_data):
+    def test_update_transaction_already_cancelled(self, simple_data, cancelled_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_890_CANCELLED_BY_USER
-        t = TransactionFactory.create(status='cancelled',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='cancelled')
+        o = OrderFactory.create(state='cancelled',
+                                      transaction__status='cancelled',
+                                      transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = cancelled_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -175,11 +200,13 @@ class TestTransactionUpdate:
         assert t.status == 'cancelled'
         assert t.order.state == 'cancelled'
 
-    def test_update_new_transaction_to_cancelled(self, simple_data):
+    def test_update_new_transaction_to_cancelled(self, simple_data, order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_890_CANCELLED_BY_USER
-        t = TransactionFactory.create(status='new',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='created')
+        o = OrderFactory.create(transaction__status='new',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -188,11 +215,15 @@ class TestTransactionUpdate:
         assert t.status == 'new'
         assert t.order.state == 'created'
 
-    def test_update_success_transaction_to_cancelled(self, simple_data):
+    def test_update_success_transaction_to_cancelled(self, simple_data, completed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_890_CANCELLED_BY_USER
-        t = TransactionFactory.create(status='success',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='completed')
+        o = OrderFactory.create(state='completed',
+                                transaction__status='success',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+
+        # t.order = completed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -201,11 +232,13 @@ class TestTransactionUpdate:
         assert t.status == 'success'
         assert t.order.state == 'completed'
 
-    def test_update_transaction_pending(self, simple_data):
+    def test_update_transaction_pending(self, simple_data, order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_790_PENDING_INPUT
-        t = TransactionFactory.create(status='new',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='created')
+        o = OrderFactory.create(transaction__status='new',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -214,11 +247,14 @@ class TestTransactionUpdate:
         assert t.status == 'pending'
         assert t.order.state == 'created'  # Transaction doesn't change order to pending
 
-    def test_update_transaction_already_pending(self, simple_data):
+    def test_update_transaction_already_pending(self, simple_data, pending_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_790_PENDING_INPUT
-        t = TransactionFactory.create(status='pending',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='pending')
+        o = OrderFactory.create(state='pending',
+                                transaction__status='pending',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = pending_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -227,11 +263,14 @@ class TestTransactionUpdate:
         assert t.status == 'pending'
         assert t.order.state == 'pending'
 
-    def test_update_success_transaction_to_pending(self, simple_data):
+    def test_update_success_transaction_to_pending(self, simple_data, completed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_790_PENDING_INPUT
-        t = TransactionFactory.create(status='success',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='completed')
+        o = OrderFactory.create(state='completed',
+                                transaction__status='success',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = completed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -240,11 +279,14 @@ class TestTransactionUpdate:
         assert t.status == 'success'
         assert t.order.state == 'completed'
 
-    def test_update_transaction_rejected(self, simple_data):
+    def test_update_transaction_rejected(self, simple_data, pending_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_690_REJECTED
-        t = TransactionFactory.create(status='pending',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='pending')
+        t = OrderFactory.create(state='pending',
+                                      transaction__status='pending',
+                                      transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = pending_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -253,11 +295,14 @@ class TestTransactionUpdate:
         assert t.status == 'rejected'
         assert t.order.state == 'failure'
 
-    def test_update_transaction_already_rejected(self, simple_data):
+    def test_update_transaction_already_rejected(self, simple_data, failed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_690_REJECTED
-        t = TransactionFactory.create(status='rejected',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='failure')
+        t = OrderFactory.create(state='failure',
+                                      transaction__status='rejected',
+                                      transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = failed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -266,11 +311,13 @@ class TestTransactionUpdate:
         assert t.status == 'rejected'
         assert t.order.state == 'failure'
 
-    def test_update_new_transaction_to_rejected(self, simple_data):
+    def test_update_new_transaction_to_rejected(self, simple_data, order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_690_REJECTED
-        t = TransactionFactory.create(status='new',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='created')
+        o = OrderFactory.create(transaction__status='new',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -279,11 +326,14 @@ class TestTransactionUpdate:
         assert t.status == 'new'
         assert t.order.state == 'created'
 
-    def test_update_success_transaction_to_rejected(self, simple_data):
+    def test_update_success_transaction_to_rejected(self, simple_data, completed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_690_REJECTED
-        t = TransactionFactory.create(status='success',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='completed')
+        o = OrderFactory.create(state='completed',
+                                transaction__status='success',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = completed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -292,11 +342,14 @@ class TestTransactionUpdate:
         assert t.status == 'success'
         assert t.order.state == 'completed'
 
-    def test_update_transaction_failed(self, simple_data):
+    def test_update_transaction_failed(self, simple_data, pending_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_490_FAILED
-        t = TransactionFactory.create(status='pending',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='pending')
+        o = OrderFactory.create(state='pending',
+                                      transaction__status='pending',
+                                      transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = pending_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -305,11 +358,14 @@ class TestTransactionUpdate:
         assert t.status == 'failed'
         assert t.order.state == 'failure'
 
-    def test_update_transaction_already_failed(self, simple_data):
+    def test_update_transaction_already_failed(self, simple_data, failed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_490_FAILED
-        t = TransactionFactory.create(status='failed',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='failure')
+        o = OrderFactory.create(state='failure',
+                                      transaction__status='failed',
+                                      transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = failed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -318,11 +374,14 @@ class TestTransactionUpdate:
         assert t.status == 'failed'
         assert t.order.state == 'failure'
 
-    def test_update_new_transaction_to_failed(self, simple_data):
+    def test_update_new_transaction_to_failed(self, simple_data, order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_490_FAILED
-        t = TransactionFactory.create(status='new',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='created')
+
+        o = OrderFactory.create(transaction__status='new',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
+        # t.order = order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -331,11 +390,14 @@ class TestTransactionUpdate:
         assert t.status == 'new'
         assert t.order.state == 'created'
 
-    def test_update_success_transaction_to_failed(self, simple_data):
+    def test_update_success_transaction_to_failed(self, simple_data, completed_order):
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_490_FAILED
-        t = TransactionFactory.create(status='success',
-                                      transaction_key='4ED2032582DF418BADF21587BE406453',
-                                      order__state='completed')
+        o = OrderFactory.create(state='completed',
+                                transaction__status='success',
+                                transaction__transaction_key='4ED2032582DF418BADF21587BE406453') 
+        # t.order = completed_order
+        # t.save()
+
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -360,9 +422,7 @@ class TestRedirectView:
             reverse('guts_payment_return', kwargs={'pk': 1}), {})
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    def test_success(self, client, pending_order, gutsclient):
-        transaction_pending = TransactionFactory.create(status="pending",
-                                                        order=pending_order)
+    def test_success(self, client, transaction_pending, gutsclient):
         data = dict(BRQ_STATUSCODE=BUCKAROO_190_SUCCESS,
                     BRQ_TRANSACTIONS=transaction_pending.transaction_key)
         dataenc = "".join("{}={}".format(k, v) for (k, v) in sorted(
@@ -381,9 +441,7 @@ class TestRedirectView:
         # assert int(
         #     args['event']) == transaction_pending.order.tickets.first().event_id
 
-    def test_cancelled(self, client, pending_order, gutsclient):
-        transaction_pending = TransactionFactory.create(status="pending",
-                                                        order=pending_order)
+    def test_cancelled(self, client, transaction_pending, gutsclient):
         data = dict(BRQ_STATUSCODE=BUCKAROO_890_CANCELLED_BY_USER,
                     BRQ_TRANSACTIONS=transaction_pending.transaction_key)
         dataenc = "".join("{}={}".format(k, v) for (k, v) in sorted(
@@ -402,9 +460,8 @@ class TestRedirectView:
         # assert int(
         #     args['event']) == transaction_pending.order.tickets.first().event_id
 
-    def test_failure(self, client, pending_order, gutsclient):
-        transaction_pending = TransactionFactory.create(status="pending",
-                                                        order=pending_order)
+    def test_failure(self, client, transaction_pending, gutsclient):
+        print("NOOOOO", transaction_pending.order)
         data = dict(BRQ_STATUSCODE=BUCKAROO_490_FAILED,
                     BRQ_TRANSACTIONS=transaction_pending.transaction_key)
         dataenc = "".join("{}={}".format(k, v) for (k, v) in sorted(
