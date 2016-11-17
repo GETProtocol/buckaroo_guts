@@ -31,6 +31,14 @@ class ClientFactory(factory.django.DjangoModelFactory):
     refund_fee = 2.5
 
 
+class TransactionFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = Transaction
+
+    transaction_key = factory.LazyAttribute(random_string)
+
+
 class OrderFactory(factory.django.DjangoModelFactory):
 
     class Meta:
@@ -38,15 +46,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
 
     owner = factory.SubFactory(UserFactory)
     client = factory.SubFactory(ClientFactory)
-
-
-class TransactionFactory(factory.django.DjangoModelFactory):
-
-    class Meta:
-        model = Transaction
-
-    transaction_key = factory.LazyAttribute(random_string)
-    order = factory.SubFactory(OrderFactory)
+    transaction = factory.SubFactory(TransactionFactory)
 
 
 class UserFactory(factory.DjangoModelFactory):

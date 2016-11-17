@@ -7,7 +7,6 @@ import requests
 
 from collections import OrderedDict
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from django_fsm import TransitionNotAllowed
@@ -30,6 +29,7 @@ def update_transaction_post(data=None):
 
     try:
         transaction = Transaction.objects.get(transaction_key=transaction_key)
+        print("HIYA", transaction.order)
     except Transaction.DoesNotExist:
         logger.error("Transaction not found for payment key: {0}".format(transaction_key))
         return

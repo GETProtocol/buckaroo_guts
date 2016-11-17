@@ -36,9 +36,6 @@ class TransactionList(generics.ListCreateAPIView):
         # if instance.order.owner != self.request.user:
         #     raise PermissionDenied(detail="User is not owner of the order")
 
-
-        instance.order.start_pay()
-        instance.order.save()
         # import ipdb;ipdb.set_trace()
         if instance.order.state != 'pending':
             raise ValidationError(detail="Incorrect order status: {0}"
