@@ -11,11 +11,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from .models import Transaction, Client
+from .models import Transaction
 from .serializers import TransactionSerializer
 from .actions import Pay
 from .exceptions import BuckarooException, BuckarooAPIException
-from .utils import verify_buckaroo_signature, update_transaction_post
+from .utils import (verify_buckaroo_signature,
+                    update_transaction_post,
+                    get_transaction_from_response)
 
 from .permissions import PostOnly, BuckarooServer
 
@@ -130,11 +132,9 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
 
     data = request.POST
 
-    print("DATA", data)
-    try:
-        client = Client.objects.get(name='guts')
-    except:
-        client = Client.objects.get(name='kasco')
+    transaction = get_transaction_from_response(data=data)
+
+    client = transaction.order.client
 
     if verify_buckaroo_signature(data, client):
         transaction = update_transaction_post(data)
@@ -156,14 +156,8 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
     data = dict(data)  # we can't add keys to a QueryDict
     data['flag'] = flag
 
-    # let the frontend also know for which event it was
-    try:
-        data['event'] = transaction.order.tickets.first().event_id
-    except AttributeError:
-        data['event'] = 1
-
-    response['Location'] = ("{0}/orders/"
-                            "paymentReturn/{1}/{2}").format(transaction.order.client.ember_url,
-                                                            pk,
-                                                            urllib.parse.urlencode(data))
+    # Django automatically adds the slash between {1} and {2}
+    response['Location'] = ("{0}/{1}{2}").format(client.ember_url,
+                                                 client.payment_result_url,
+                                                 urllib.parse.urlencode(data))
     return response

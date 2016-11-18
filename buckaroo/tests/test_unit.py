@@ -126,8 +126,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='pending',
                                 transaction__status='pending',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = pending_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -142,8 +140,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='completed',
                                 transaction__status='success',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = completed_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -157,8 +153,6 @@ class TestTransactionUpdate:
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_190_SUCCESS
         o = OrderFactory.create(transaction__status='new',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -173,8 +167,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='pending',
                                 transaction__status='pending',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = pending_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -189,8 +181,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='cancelled',
                                       transaction__status='cancelled',
                                       transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = cancelled_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -204,8 +194,6 @@ class TestTransactionUpdate:
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_890_CANCELLED_BY_USER
         o = OrderFactory.create(transaction__status='new',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -221,9 +209,6 @@ class TestTransactionUpdate:
                                 transaction__status='success',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
 
-        # t.order = completed_order
-        # t.save()
-
         update_transaction_post(data=simple_data)
 
         t = Transaction.objects.get(
@@ -236,8 +221,6 @@ class TestTransactionUpdate:
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_790_PENDING_INPUT
         o = OrderFactory.create(transaction__status='new',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -252,8 +235,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='pending',
                                 transaction__status='pending',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = pending_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -268,8 +249,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='completed',
                                 transaction__status='success',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = completed_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -284,8 +263,6 @@ class TestTransactionUpdate:
         t = OrderFactory.create(state='pending',
                                       transaction__status='pending',
                                       transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = pending_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -300,8 +277,6 @@ class TestTransactionUpdate:
         t = OrderFactory.create(state='failure',
                                       transaction__status='rejected',
                                       transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = failed_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -315,8 +290,6 @@ class TestTransactionUpdate:
         simple_data['BRQ_STATUSCODE'] = BUCKAROO_690_REJECTED
         o = OrderFactory.create(transaction__status='new',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -331,8 +304,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='completed',
                                 transaction__status='success',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = completed_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -347,8 +318,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='pending',
                                       transaction__status='pending',
                                       transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = pending_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -363,8 +332,6 @@ class TestTransactionUpdate:
         o = OrderFactory.create(state='failure',
                                       transaction__status='failed',
                                       transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = failed_order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -379,8 +346,6 @@ class TestTransactionUpdate:
 
         o = OrderFactory.create(transaction__status='new',
                                 transaction__transaction_key='4ED2032582DF418BADF21587BE406453')
-        # t.order = order
-        # t.save()
 
         update_transaction_post(data=simple_data)
 
@@ -416,10 +381,12 @@ class TestTransactionUpdate:
 class TestRedirectView:
     """Test redirect from Buckaroo POST push to our Ember server."""
 
-    def test_invalid_signature(self, client, gutsclient):
+    def test_invalid_signature(self, client, transaction_pending, gutsclient):
         print(gutsclient.id)
+        data = dict(BRQ_STATUSCODE=BUCKAROO_190_SUCCESS,
+                    BRQ_TRANSACTIONS=transaction_pending.transaction_key)
         response = client.post(
-            reverse('guts_payment_return', kwargs={'pk': 1}), {})
+            reverse('guts_payment_return', kwargs={'pk': 1}), data)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
     def test_success(self, client, transaction_pending, gutsclient):
@@ -438,8 +405,6 @@ class TestRedirectView:
         args = dict(urllib.parse.parse_qsl(
             response['location'].rsplit('/', 1)[-1]))
         assert args['flag'] == 'success'
-        # assert int(
-        #     args['event']) == transaction_pending.order.tickets.first().event_id
 
     def test_cancelled(self, client, transaction_pending, gutsclient):
         data = dict(BRQ_STATUSCODE=BUCKAROO_890_CANCELLED_BY_USER,
@@ -457,18 +422,17 @@ class TestRedirectView:
         args = dict(urllib.parse.parse_qsl(
             response['location'].rsplit('/', 1)[-1]))
         assert args['flag'] == 'cancelled'
-        # assert int(
-        #     args['event']) == transaction_pending.order.tickets.first().event_id
 
     def test_failure(self, client, transaction_pending, gutsclient):
-        print("NOOOOO", transaction_pending.order)
         data = dict(BRQ_STATUSCODE=BUCKAROO_490_FAILED,
                     BRQ_TRANSACTIONS=transaction_pending.transaction_key)
-        dataenc = "".join("{}={}".format(k, v) for (k, v) in sorted(
-            data.items())) + gutsclient.secret
-        sig = hashlib.sha1(dataenc.encode('utf8')).hexdigest()
+        dataenc = "".join(['{0}={1}'.format(k, v) for k, v in sorted(data.items())
+                           if k is not None and (k.startswith("BRQ_") or
+                           k.startswith("ADD_") or k.startswith("CUST_")) and
+                           not k.startswith("BRQ_SIGNATURE")]) + transaction_pending.order.client.secret
+        raw_signature = urllib.parse.unquote(dataenc)
+        sig = hashlib.sha1(raw_signature.encode('utf-8')).hexdigest()
         data["BRQ_SIGNATURE"] = sig
-
         response = client.post(
             reverse('guts_payment_return',
                     kwargs={'pk': transaction_pending.order.id}), data=data)
@@ -477,5 +441,3 @@ class TestRedirectView:
         args = dict(urllib.parse.parse_qsl(
             response['location'].rsplit('/', 1)[-1]))
         assert args['flag'] == 'failed'
-        # assert int(
-        #     args['event']) == transaction_pending.order.tickets.first().event_id

@@ -98,6 +98,7 @@ class Client(TimeStampedModel):
     return_url = models.CharField(max_length=500)
     refunds_enabled = models.BooleanField(default=False)
     ember_url = models.CharField(max_length=500)
+    payment_result_url = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.name

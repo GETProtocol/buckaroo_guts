@@ -34,14 +34,14 @@ def cancelled_order(request):
 
 
 @pytest.fixture
-def transaction_pending(request, pending_order):
-    o = OrderFactory.create(state='pending', transaction__status='pending')
-    return o.transaction
+def gutsclient(request):
+    return ClientFactory.create(name='guts', secret='blabla')
 
 
 @pytest.fixture
-def gutsclient(request):
-    return ClientFactory.create(name='guts', secret='ihaveguts')
+def transaction_pending(request, gutsclient):
+    o = OrderFactory.create(state='pending', transaction__status='pending', client=gutsclient)
+    return o.transaction
 
 
 @pytest.fixture

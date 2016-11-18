@@ -6,10 +6,6 @@ from django_fsm import FSMField, transition
 from ..models import BasicOrderModel
 
 
-class Ticket(models.Model):
-    name = models.CharField(max_length=300, blank=True, null=True)
-
-
 class Order(BasicOrderModel):
 
     STATUS_CREATED = "created"
@@ -21,7 +17,6 @@ class Order(BasicOrderModel):
 
     state = FSMField(default=STATUS_CREATED, protected=True)
     owner = models.ForeignKey(User, related_name="orders", null=True)
-    tickets = models.ManyToManyField(Ticket, related_name="tickets")
 
     @transition(field=state, source=STATUS_CREATED, target=STATUS_PENDING)
     def start_pay(self):

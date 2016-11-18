@@ -17,10 +17,7 @@ from .auth import AuthHeader
 logger = logging.getLogger(__name__)
 
 
-def update_transaction_post(data=None):
-    if not data:
-        return
-
+def get_transaction_from_response(data=None):
     transaction_key = data.get('BRQ_TRANSACTIONS', None)
 
     if not transaction_key:
@@ -29,57 +26,70 @@ def update_transaction_post(data=None):
 
     try:
         transaction = Transaction.objects.get(transaction_key=transaction_key)
-        print("HIYA", transaction.order)
     except Transaction.DoesNotExist:
         logger.error("Transaction not found for payment key: {0}".format(transaction_key))
         return
+    return transaction
 
-    buckaroo_status = int(data.get('BRQ_STATUSCODE'))
 
-    transaction_status = transaction.map_status(status_code=buckaroo_status)
+def get_buckaroo_status_from_response(data=None):
+        b_status = data.get('BRQ_STATUSCODE')
+        if b_status:
+            return int(b_status)
+        return None
 
-    if transaction_status == transaction.STATUS_SUCCESS:
-        try:
-            transaction.success()
-        except TransitionNotAllowed as e:
-            logger.exception("Update of transaction to state success failed. {0}".format(e))
 
-    if transaction_status == transaction.STATUS_CANCELLED:
-        try:
-            transaction.cancelled()
-        except TransitionNotAllowed as e:
-            logger.exception("Update of transaction to state cancelled failed. {0}".format(e))
+def update_transaction_post(data=None):
+    if not data:
+        return
 
-    if transaction_status == transaction.STATUS_PENDING:
-        try:
-            transaction.pending()
-        except TransitionNotAllowed as e:
-            logger.exception(
-                "Update of transaction to state pending failed. {0}".format(e))
+    transaction = get_transaction_from_response(data=data)
 
-    if transaction_status == transaction.STATUS_REJECTED:
-        try:
-            transaction.rejected()
-        except TransitionNotAllowed as e:
-            logger.exception(
-                "Update of transaction to state rejected failed. {0}".format(e))
+    buckaroo_status = get_buckaroo_status_from_response(data=data)
 
-    if transaction_status == transaction.STATUS_FAILED:
-        try:
-            transaction.failed()
-        except TransitionNotAllowed as e:
-            logger.exception(
-                "Update of transaction to state failed failed. {0}".format(e))
+    if buckaroo_status:
+        transaction_status = transaction.map_status(status_code=buckaroo_status)
 
-    transaction.save()
+        if transaction_status == transaction.STATUS_SUCCESS:
+            try:
+                transaction.success()
+            except TransitionNotAllowed as e:
+                logger.exception("Update of transaction to state success failed. {0}".format(e))
+
+        if transaction_status == transaction.STATUS_CANCELLED:
+            try:
+                transaction.cancelled()
+            except TransitionNotAllowed as e:
+                logger.exception("Update of transaction to state cancelled failed. {0}".format(e))
+
+        if transaction_status == transaction.STATUS_PENDING:
+            try:
+                transaction.pending()
+            except TransitionNotAllowed as e:
+                logger.exception(
+                    "Update of transaction to state pending failed. {0}".format(e))
+
+        if transaction_status == transaction.STATUS_REJECTED:
+            try:
+                transaction.rejected()
+            except TransitionNotAllowed as e:
+                logger.exception(
+                    "Update of transaction to state rejected failed. {0}".format(e))
+
+        if transaction_status == transaction.STATUS_FAILED:
+            try:
+                transaction.failed()
+            except TransitionNotAllowed as e:
+                logger.exception(
+                    "Update of transaction to state failed failed. {0}".format(e))
+
+        transaction.save()
 
     return transaction
 
 
 def verify_buckaroo_signature(data, client):
     buckaroo_signature = data.get('BRQ_SIGNATURE', None)
-    print("SECRET: ", client.secret)
-    print(data)
     try:
         secret_key = client.secret
     except AttributeError:
@@ -91,8 +101,6 @@ def verify_buckaroo_signature(data, client):
                                     not k.startswith("BRQ_SIGNATURE")]) + secret_key
     raw_signature = urllib.parse.unquote(urlencoded_signature)
     signature = hashlib.sha1(raw_signature.encode('utf-8')).hexdigest()
-    print(buckaroo_signature)
-    print(signature)
     if buckaroo_signature == signature:
         return True
     return False
@@ -206,9 +214,8 @@ def add_pay_json(body, transaction, client):
 def get_base_transaction_json(transaction, client):
     body = OrderedDict(Invoice=str(transaction.uuid),
                        Currency="EUR",
-                       Services=OrderedDict(ServiceList=[]),
-                       ADD_clientid=client.id,
-                       cust_client_id=client.id)
+                       Services=OrderedDict(CustomParameters=OrderedDict(clientId=client.id), ServiceList=[]),
+                       CustomParameters=OrderedDict(client_id=client.id))
     return body
 
 
