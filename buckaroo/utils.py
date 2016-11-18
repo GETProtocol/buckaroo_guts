@@ -214,8 +214,8 @@ def add_pay_json(body, transaction, client):
 def get_base_transaction_json(transaction, client):
     body = OrderedDict(Invoice=str(transaction.uuid),
                        Currency="EUR",
-                       Services=OrderedDict(CustomParameters=OrderedDict(clientId=client.id), ServiceList=[]),
-                       CustomParameters=OrderedDict(client_id=client.id))
+                       Services=OrderedDict(ServiceList=[]),
+                       CustomParameters=OrderedDict(List=[OrderedDict(Name="client_id", Value=client.id)]))
     return body
 
 
