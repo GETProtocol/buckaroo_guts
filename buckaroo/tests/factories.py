@@ -29,7 +29,7 @@ class ClientFactory(factory.django.DjangoModelFactory):
         model = Client
 
     refund_fee = 2.5
-    payment_result_url = 'localhost:8000/return/'
+    payment_result_path = 'localhost:8000/return/'
 
 
 class TransactionFactory(factory.django.DjangoModelFactory):
