@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('test_mode', models.BooleanField(default=True)),
                 ('return_url', models.CharField(max_length=500)),
                 ('refunds_enabled', models.BooleanField(default=False)),
-                ('ember_url', models.CharField(max_length=500)),
+                ('ember_base_path', models.CharField(max_length=500)),
             ],
             options={
                 'abstract': False,

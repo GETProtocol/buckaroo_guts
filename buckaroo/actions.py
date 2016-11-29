@@ -1,4 +1,3 @@
-from decimal import Decimal
 from django.conf import settings
 from rest_framework import status
 
@@ -44,27 +43,7 @@ BANK_CODES = (
 )
 
 
-class BuckarooSettingsMixin:
-
-    def __init__(self):
-        pass
-        # try:
-        #     assert settings.BUCKAROO_CHECKOUT_URL
-        # except AttributeError:
-        #     raise BuckarooException("BUCKAROO_CHECKOUT_URL settings missing")
-
-        # try:
-        #     assert settings.BUCKAROO_WEBSITE_KEY
-        # except AttributeError:
-        #     raise BuckarooException("BUCKAROO_WEBSITE_KEY setting missing")
-
-        # try:
-        #     assert settings.BUCKAROO_SECRET_KEY
-        # except AttributeError:
-        #     raise BuckarooException("BUCKAROO_SECRET_KEY setting missing")
-
-
-class Pay(BuckarooSettingsMixin):
+class Pay():
 
     def __init__(self, transaction=None, testing=None):
 
@@ -84,7 +63,6 @@ class Pay(BuckarooSettingsMixin):
         url = construct_url(client=self.client)
 
         res = buckaroo_api_call(self.transaction, url, "POST", data)
-        import ipdb;ipdb.set_trace()
         self._handle_transaction_response(response=res)
 
     def _prepare_pay_json(self):
@@ -124,7 +102,7 @@ class Pay(BuckarooSettingsMixin):
         self.transaction.save()
 
 
-class Refund(BuckarooSettingsMixin):
+class Refund():
     """Refunding happens on a per ticket basis."""
 
     def __init__(self, transaction=None, amount=0, testing=True):

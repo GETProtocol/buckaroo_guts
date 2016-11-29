@@ -97,8 +97,8 @@ class Client(TimeStampedModel):
     test_mode = models.BooleanField(default=True)
     return_url = models.CharField(max_length=500)
     refunds_enabled = models.BooleanField(default=False)
-    ember_url = models.CharField(max_length=500)
-    payment_result_url = models.CharField(max_length=500, blank=True, null=True)
+    ember_base_path = models.CharField(max_length=500)
+    payment_result_path = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.name

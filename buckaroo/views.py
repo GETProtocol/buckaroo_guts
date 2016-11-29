@@ -157,7 +157,7 @@ def PaymentReturnRedirectView(request, pk, *args, **kwargs):
     data['flag'] = flag
 
     # Django automatically adds the slash between {1} and {2}
-    response['Location'] = ("{0}/{1}{2}").format(client.ember_url,
-                                                 client.payment_result_url,
+    response['Location'] = ("{0}/{1}{2}").format(client.ember_base_path,
+                                                 client.payment_result_path,
                                                  urllib.parse.urlencode(data))
     return response
